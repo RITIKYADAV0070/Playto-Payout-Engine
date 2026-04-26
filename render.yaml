@@ -5,7 +5,7 @@ services:
     rootDir: .
     plan: free
     buildCommand: pip install -r requirements.txt && cd backend && python manage.py collectstatic --noinput
-    startCommand: cd backend && python manage.py migrate && python manage.py seed && gunicorn playto.wsgi:application
+    startCommand: cd backend && bash start_render.sh
     healthCheckPath: /api/v1/health
     envVars:
       - key: PYTHON_VERSION
@@ -34,37 +34,6 @@ services:
           type: keyvalue
           name: playto-pay-redis
           property: port
-
-  - type: worker
-    name: playto-pay-worker
-    runtime: python
-    rootDir: .
-    buildCommand: pip install -r requirements.txt
-    startCommand: cd backend && celery -A playto worker -B --loglevel=info
-    envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.9
-      - key: DEBUG
-        value: 0
-      - key: SECRET_KEY
-        generateValue: true
-      - key: DATABASE_SSL_REQUIRE
-        value: 1
-      - key: DATABASE_URL
-        fromDatabase:
-          name: playto-pay-db
-          property: connectionString
-      - key: REDIS_HOST
-        fromService:
-          type: keyvalue
-          name: playto-pay-redis
-          property: host
-      - key: REDIS_PORT
-        fromService:
-          type: keyvalue
-          name: playto-pay-redis
-          property: port
-
   - type: web
     name: playto-pay-dashboard
     runtime: static

@@ -102,9 +102,10 @@ Use PostgreSQL and Redis in production. This repo includes `render.yaml` for Ren
 
 - `playto-pay-api`: Django + DRF API
 - `playto-pay-dashboard`: React static frontend
-- `playto-pay-worker`: Celery worker + beat scheduler
 - `playto-pay-db`: PostgreSQL
 - `playto-pay-redis`: Redis-compatible key-value instance
+
+For the free Render Blueprint, the API web service starts the Celery worker/beat in the background from `backend/start_render.sh`. In a production paid deployment, split that into its own worker service.
 
 ### Render Blueprint Deploy
 
