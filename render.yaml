@@ -5,8 +5,7 @@ services:
     rootDir: .
     plan: free
     buildCommand: pip install -r requirements.txt && cd backend && python manage.py collectstatic --noinput
-    preDeployCommand: cd backend && python manage.py migrate && python manage.py seed
-    startCommand: cd backend && gunicorn playto.wsgi:application
+    startCommand: cd backend && python manage.py migrate && python manage.py seed && gunicorn playto.wsgi:application
     healthCheckPath: /api/v1/health
     envVars:
       - key: PYTHON_VERSION
