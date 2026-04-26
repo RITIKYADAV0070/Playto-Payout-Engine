@@ -1,8 +1,14 @@
 # EXPLAINER
 
+Live demo:
+
+- Dashboard: https://playto-pay-dashboard.onrender.com
+- API: https://playto-pay-api.onrender.com/api/v1/
+- Health check: https://playto-pay-api.onrender.com/api/v1/health
+
 ## The Ledger
 
-Balance calculation query:
+Balance calculation query from `backend/payments/services.py`:
 
 ```python
 LedgerEntry.objects.filter(merchant=merchant).aggregate(
@@ -10,11 +16,11 @@ LedgerEntry.objects.filter(merchant=merchant).aggregate(
 )
 ```
 
-Ledger entries are signed integer paise rows. Customer payments are positive credits, payout holds are negative debits, and failed payout releases are positive credits. This keeps the displayed available balance derivable from `SUM(amount_paise)` without floats or decimals. `MerchantBalance` stores the same available/held values as locked counters for fast concurrent writes; the ledger remains the audit trail and invariant source.
+Ledger entries are signed integer paise rows. Customer payments are positive credits, payout holds are negative debits, and failed payout releases are positive credits. This keeps the displayed available balance derivable from `SUM(amount_paise)` without floats or decimals. `MerchantBalance` stores the same available and held values as locked counters for fast concurrent writes; the ledger remains the audit trail and invariant source.
 
 ## The Lock
 
-The overdraft prevention code is in `payments/services.py`:
+The overdraft prevention code is in `backend/payments/services.py`:
 
 ```python
 balance = MerchantBalance.objects.select_for_update().get(merchant=merchant)
@@ -43,7 +49,7 @@ Keys expire after 24 hours through the `expires_at` column. A reused expired key
 
 ## The State Machine
 
-Legal transitions are declared in `payments/services.py`:
+Legal transitions are declared in `backend/payments/services.py`:
 
 ```python
 LEGAL_TRANSITIONS = {
