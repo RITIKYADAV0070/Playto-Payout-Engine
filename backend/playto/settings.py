@@ -110,6 +110,7 @@ else:
 
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", default_redis_url)
 CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", CELERY_BROKER_URL)
+RUN_INLINE_PAYOUT_WORKER = os.getenv("RUN_INLINE_PAYOUT_WORKER", "0") == "1"
 CELERY_BEAT_SCHEDULE = {
     "process-payouts-every-five-seconds": {
         "task": "payments.tasks.process_payouts",

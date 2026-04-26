@@ -98,14 +98,14 @@ The concurrency test intentionally runs only on PostgreSQL because `SELECT ... F
 
 ## Deployment Notes
 
-Use PostgreSQL and Redis in production. This repo includes `render.yaml` for Render Blueprint deploys:
+Use PostgreSQL and Redis in production. This repo includes `render.yaml` for a no-card Render demo deploy:
 
 - `playto-pay-api`: Django + DRF API
 - `playto-pay-dashboard`: React static frontend
-- `playto-pay-db`: PostgreSQL
-- `playto-pay-redis`: Redis-compatible key-value instance
 
-For the free Render Blueprint, the API web service starts the Celery worker/beat in the background from `backend/start_render.sh`. In a production paid deployment, split that into its own worker service.
+The free Render Blueprint does not create Render Postgres because Render showed a paid `$10.50/month` database. Use a free external PostgreSQL database such as Neon and paste its connection string into `DATABASE_URL`.
+
+For a no-card hosted demo, the API web service runs the payout processor in-process with `RUN_INLINE_PAYOUT_WORKER=1`. The codebase still includes Celery tasks and the local Docker setup uses Redis/Celery. In a production paid deployment, run Celery as its own worker service.
 
 ### Render Blueprint Deploy
 
@@ -113,8 +113,9 @@ For the free Render Blueprint, the API web service starts the Celery worker/beat
 2. In Render, choose **New > Blueprint**.
 3. Connect `RITIKYADAV0070/Playto-Payout-Engine`.
 4. Select the repo's `render.yaml`.
-5. Apply the blueprint.
-6. After the first deploy, open the dashboard service URL.
+5. Add `DATABASE_URL` from your free PostgreSQL provider when Render asks for environment variables.
+6. Apply the blueprint.
+7. After the first deploy, open the dashboard service URL.
 
 Expected URLs if Render keeps the service names:
 
@@ -139,8 +140,7 @@ The backend supports these environment variables:
 - `ALLOWED_HOSTS`
 - `CORS_ALLOWED_ORIGINS`
 - `DATABASE_URL`
-- `REDIS_HOST`
-- `REDIS_PORT`
+- `RUN_INLINE_PAYOUT_WORKER`
 
 For Render/Railway/Fly, run:
 
