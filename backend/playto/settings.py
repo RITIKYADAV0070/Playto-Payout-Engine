@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 
+import dj_database_url
 from corsheaders.defaults import default_headers
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -24,6 +25,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -64,6 +66,12 @@ DATABASES = {
     }
 }
 
+if os.getenv("DATABASE_URL"):
+    DATABASES["default"] = dj_database_url.config(
+        conn_max_age=600,
+        ssl_require=os.getenv("DATABASE_SSL_REQUIRE", "1") == "1",
+    )
+
 if os.getenv("USE_SQLITE_FOR_TESTS") == "1":
     DATABASES["default"] = {
         "ENGINE": "django.db.backends.sqlite3",
@@ -77,6 +85,7 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
@@ -94,8 +103,13 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 ]
 CORS_ALLOW_HEADERS = list(default_headers) + ["x-merchant-id", "idempotency-key"]
 
-CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6380/0")
-CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6380/1")
+if os.getenv("REDIS_HOST"):
+    default_redis_url = f"redis://{os.getenv('REDIS_HOST')}:{os.getenv('REDIS_PORT', '6379')}/0"
+else:
+    default_redis_url = "redis://localhost:6380/0"
+
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", default_redis_url)
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", CELERY_BROKER_URL)
 CELERY_BEAT_SCHEDULE = {
     "process-payouts-every-five-seconds": {
         "task": "payments.tasks.process_payouts",

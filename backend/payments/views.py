@@ -27,6 +27,11 @@ def merchants(request):
 
 
 @api_view(["GET"])
+def health(request):
+    return Response({"status": "ok"})
+
+
+@api_view(["GET"])
 def dashboard(request):
     merchant = Merchant.objects.get(id=_merchant_id(request))
     balance = merchant.balance

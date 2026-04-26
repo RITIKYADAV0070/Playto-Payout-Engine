@@ -98,7 +98,34 @@ The concurrency test intentionally runs only on PostgreSQL because `SELECT ... F
 
 ## Deployment Notes
 
-Use PostgreSQL and Redis in production. The backend needs these environment variables:
+Use PostgreSQL and Redis in production. This repo includes `render.yaml` for Render Blueprint deploys:
+
+- `playto-pay-api`: Django + DRF API
+- `playto-pay-dashboard`: React static frontend
+- `playto-pay-worker`: Celery worker + beat scheduler
+- `playto-pay-db`: PostgreSQL
+- `playto-pay-redis`: Redis-compatible key-value instance
+
+### Render Blueprint Deploy
+
+1. Push this repo to GitHub.
+2. In Render, choose **New > Blueprint**.
+3. Connect `RITIKYADAV0070/Playto-Payout-Engine`.
+4. Select the repo's `render.yaml`.
+5. Apply the blueprint.
+6. After the first deploy, open the dashboard service URL.
+
+Expected URLs if Render keeps the service names:
+
+- Frontend: `https://playto-pay-dashboard.onrender.com`
+- API: `https://playto-pay-api.onrender.com/api/v1`
+
+If Render gives the services different URLs, update:
+
+- API service `CORS_ALLOWED_ORIGINS`
+- Dashboard service build command `VITE_API_BASE=...`
+
+The backend supports these environment variables:
 
 - `POSTGRES_DB`
 - `POSTGRES_USER`
@@ -110,6 +137,9 @@ Use PostgreSQL and Redis in production. The backend needs these environment vari
 - `SECRET_KEY`
 - `ALLOWED_HOSTS`
 - `CORS_ALLOWED_ORIGINS`
+- `DATABASE_URL`
+- `REDIS_HOST`
+- `REDIS_PORT`
 
 For Render/Railway/Fly, run:
 

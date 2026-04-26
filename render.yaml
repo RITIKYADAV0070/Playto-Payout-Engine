@@ -1,10 +1,47 @@
 services:
   - type: web
     name: playto-pay-api
-    env: python
+    runtime: python
     rootDir: .
+    plan: free
     buildCommand: pip install -r requirements.txt && cd backend && python manage.py collectstatic --noinput
+    preDeployCommand: cd backend && python manage.py migrate && python manage.py seed
     startCommand: cd backend && gunicorn playto.wsgi:application
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: DEBUG
+        value: 0
+      - key: DATABASE_SSL_REQUIRE
+        value: 1
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        value: .onrender.com,localhost,127.0.0.1
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://playto-pay-dashboard.onrender.com
+      - key: DATABASE_URL
+        fromDatabase:
+          name: playto-pay-db
+          property: connectionString
+      - key: REDIS_HOST
+        fromService:
+          type: keyvalue
+          name: playto-pay-redis
+          property: host
+      - key: REDIS_PORT
+        fromService:
+          type: keyvalue
+          name: playto-pay-redis
+          property: port
+
+  - type: worker
+    name: playto-pay-worker
+    runtime: python
+    rootDir: .
+    buildCommand: pip install -r requirements.txt
+    startCommand: cd backend && celery -A playto worker -B --loglevel=info
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
@@ -12,13 +49,41 @@ services:
         value: 0
       - key: SECRET_KEY
         generateValue: true
-      - key: ALLOWED_HOSTS
-        sync: false
-      - key: CORS_ALLOWED_ORIGINS
-        sync: false
-  - type: worker
-    name: playto-pay-worker
-    env: python
-    rootDir: .
-    buildCommand: pip install -r requirements.txt
-    startCommand: cd backend && celery -A playto worker -B --loglevel=info
+      - key: DATABASE_SSL_REQUIRE
+        value: 1
+      - key: DATABASE_URL
+        fromDatabase:
+          name: playto-pay-db
+          property: connectionString
+      - key: REDIS_HOST
+        fromService:
+          type: keyvalue
+          name: playto-pay-redis
+          property: host
+      - key: REDIS_PORT
+        fromService:
+          type: keyvalue
+          name: playto-pay-redis
+          property: port
+
+  - type: web
+    name: playto-pay-dashboard
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && VITE_API_BASE=https://playto-pay-api.onrender.com/api/v1 npm run build
+    staticPublishPath: ./dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+  - type: keyvalue
+    name: playto-pay-redis
+    plan: free
+    ipAllowList: []
+    maxmemoryPolicy: noeviction
+
+databases:
+  - name: playto-pay-db
+    databaseName: playto
+    user: playto
