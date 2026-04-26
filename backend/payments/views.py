@@ -22,6 +22,23 @@ def _merchant_id(request):
 
 
 @api_view(["GET"])
+def api_index(request):
+    return Response(
+        {
+            "service": "Playto Pay Payout Engine API",
+            "version": "v1",
+            "status": "ok",
+            "endpoints": {
+                "health": "/api/v1/health",
+                "merchants": "/api/v1/merchants",
+                "dashboard": "/api/v1/dashboard",
+                "payouts": "/api/v1/payouts",
+            },
+        }
+    )
+
+
+@api_view(["GET"])
 def merchants(request):
     return Response(MerchantSerializer(Merchant.objects.prefetch_related("bank_accounts"), many=True).data)
 
