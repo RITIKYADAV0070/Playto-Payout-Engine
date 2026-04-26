@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: playto-pay-api
+    env: python
+    rootDir: .
+    buildCommand: pip install -r requirements.txt && cd backend && python manage.py collectstatic --noinput
+    startCommand: cd backend && gunicorn playto.wsgi:application
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: DEBUG
+        value: 0
+      - key: SECRET_KEY
+        generateValue: true
+      - key: ALLOWED_HOSTS
+        sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
+  - type: worker
+    name: playto-pay-worker
+    env: python
+    rootDir: .
+    buildCommand: pip install -r requirements.txt
+    startCommand: cd backend && celery -A playto worker -B --loglevel=info
