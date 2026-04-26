@@ -2,6 +2,14 @@
 
 Minimal payout engine for the Playto Founding Engineer Challenge 2026.
 
+## Live Demo
+
+- Dashboard: https://playto-pay-dashboard.onrender.com
+- API health check: https://playto-pay-api.onrender.com/api/v1/health
+- API base URL: https://playto-pay-api.onrender.com/api/v1
+
+Render free services can take a few seconds to wake up on the first request.
+
 ## What Is Included
 
 - Django + DRF API
